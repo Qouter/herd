@@ -1,0 +1,34 @@
+import AppKit
+import SwiftUI
+
+@main
+struct HerdApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
+    
+    var body: some Scene {
+        Settings {
+            EmptyView()
+        }
+    }
+}
+
+class AppDelegate: NSObject, NSApplicationDelegate {
+    var menuBarController: MenuBarController?
+    var socketServer: SocketServer?
+    var agentStore = AgentStore()
+    
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        NSApp.setActivationPolicy(.accessory)
+        
+        socketServer = SocketServer(store: agentStore)
+        socketServer?.start()
+        
+        menuBarController = MenuBarController(store: agentStore)
+        
+        print("Herd started")
+    }
+    
+    func applicationWillTerminate(_ notification: Notification) {
+        socketServer?.stop()
+    }
+}
