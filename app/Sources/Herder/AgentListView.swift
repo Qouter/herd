@@ -7,12 +7,12 @@ struct AgentListView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Text("Herder")
+                Text("Herder 🐑")
                     .font(.headline)
                 Spacer()
-                Button(action: { NSApplication.shared.terminate(nil) }) {
-                    Image(systemName: "gear").foregroundColor(.secondary)
-                }.buttonStyle(.plain)
+                Text("v0.3.0")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
             }.padding()
             
             Divider()
@@ -21,7 +21,8 @@ struct AgentListView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "moon.zzz").font(.system(size: 48)).foregroundColor(.secondary)
                     Text("No active agents").font(.subheadline).foregroundColor(.secondary)
-                    Text("Start a Claude Code session to see it here").font(.caption).foregroundColor(.secondary).multilineTextAlignment(.center)
+                    Text("Start a new Claude Code session to see it here").font(.caption).foregroundColor(.secondary).multilineTextAlignment(.center)
+                    Text("(Sessions started before Herder won't appear)").font(.caption2).foregroundColor(.secondary.opacity(0.7))
                 }.frame(maxWidth: .infinity, maxHeight: .infinity).padding()
             } else {
                 ScrollView {
@@ -39,7 +40,10 @@ struct AgentListView: View {
             HStack {
                 Text("\(store.totalCount) active · \(store.idleCount) waiting").font(.caption).foregroundColor(.secondary)
                 Spacer()
-                Button("Quit") { NSApplication.shared.terminate(nil) }.buttonStyle(.plain).foregroundColor(.red)
+                Button("Quit") { NSApplication.shared.terminate(nil) }
+                    .buttonStyle(.plain)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }.padding(.horizontal).padding(.vertical, 8)
         }.frame(width: 350, height: 400)
     }
