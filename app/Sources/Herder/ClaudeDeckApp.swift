@@ -21,9 +21,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.setActivationPolicy(.accessory)
         
         socketServer = SocketServer(store: agentStore)
-        Task {
-            await socketServer?.start()
-        }
+        socketServer?.start()
         
         menuBarController = MenuBarController(store: agentStore)
         
@@ -31,9 +29,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationWillTerminate(_ notification: Notification) {
-        let server = socketServer
-        Task {
-            await server?.stop()
-        }
+        socketServer?.stop()
     }
 }
