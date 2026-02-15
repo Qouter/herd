@@ -26,14 +26,31 @@ No network calls. No API keys. Everything stays on your machine.
 
 ## Install
 
-### Prerequisites
+### Via Homebrew (recommended)
+
+```bash
+brew tap qouter/tap
+brew install herd
+```
+
+Hooks are automatically installed. Launch with:
+
+```bash
+herd open
+```
+
+That's it! Start a Claude Code session and watch the menu bar update.
+
+### Manual installation
+
+#### Prerequisites
 
 - macOS 13+
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) installed
 - `jq` and `socat` (install with `brew install jq socat`)
 - Swift 5.9+ (included with Xcode or Xcode Command Line Tools)
 
-### Build & install
+#### Build & install
 
 ```bash
 git clone https://github.com/Qouter/herd.git
@@ -51,8 +68,6 @@ cp -r build/Herd.app /Applications/
 # Launch
 open /Applications/Herd.app
 ```
-
-That's it. Start a Claude Code session and watch the menu bar update.
 
 ## Menu bar
 
@@ -105,6 +120,19 @@ All hooks are `async: true` — they never block Claude Code.
 
 ## Uninstall
 
+### If installed via Homebrew
+
+```bash
+# Remove hooks first
+herd uninstall-hooks
+
+# Uninstall the app
+brew uninstall herd
+brew untap qouter/tap  # optional
+```
+
+### If installed manually
+
 ```bash
 # Remove hooks from Claude Code
 ./uninstall.sh
@@ -140,7 +168,7 @@ herd/
 
 ## Roadmap
 
-- [ ] Homebrew tap: `brew install qouter/tap/herd`
+- [x] Homebrew tap: `brew install herd`
 - [ ] Notification sound when an agent goes idle
 - [ ] Keyboard shortcut to open the popover
 - [ ] Jump to exact terminal tab (iTerm2, Warp, VS Code)
