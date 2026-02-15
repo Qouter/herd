@@ -2,7 +2,8 @@ import AppKit
 import SwiftUI
 import Combine
 
-/// Controlador del menu bar icon y popover
+/// Menu bar icon and popover controller
+@MainActor
 class MenuBarController: NSObject {
     private var statusItem: NSStatusItem?
     private var popover: NSPopover?
@@ -40,7 +41,6 @@ class MenuBarController: NSObject {
     }
     
     private func observeStoreChanges() {
-        // Observar cambios en el store para actualizar el título
         store.$sessions
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in
