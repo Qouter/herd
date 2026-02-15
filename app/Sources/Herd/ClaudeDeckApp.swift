@@ -12,12 +12,12 @@ struct HerdApp: App {
     }
 }
 
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     var menuBarController: MenuBarController?
     var socketServer: SocketServer?
-    @MainActor var agentStore = AgentStore()
+    var agentStore = AgentStore()
     
-    @MainActor
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.accessory)
         
@@ -32,8 +32,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func applicationWillTerminate(_ notification: Notification) {
+        let server = socketServer
         Task {
-            await socketServer?.stop()
+            await server?.stop()
         }
     }
 }

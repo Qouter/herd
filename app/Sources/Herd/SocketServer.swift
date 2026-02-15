@@ -24,8 +24,8 @@ actor SocketServer {
         
         var addr = sockaddr_un()
         addr.sun_family = sa_family_t(AF_UNIX)
-        _ = withUnsafeMutablePointer(to: &addr.sun_path.0) { ptr in
-            socketPath.withCString { cString in
+        withUnsafeMutablePointer(to: &addr.sun_path.0) { ptr in
+            _ = socketPath.withCString { cString in
                 strcpy(ptr, cString)
             }
         }
