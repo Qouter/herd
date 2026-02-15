@@ -72,15 +72,10 @@ actor SocketServer {
         while isRunning {
             let clientFd = accept(fd, nil, nil)
             if clientFd < 0 {
-                if isRunning {
-                    print("Error accepting connection")
-                }
+                if isRunning { print("Error accepting connection") }
                 continue
             }
-            
-            Task {
-                await handleClient(fd: clientFd)
-            }
+            Task { await handleClient(fd: clientFd) }
         }
     }
     
@@ -89,25 +84,17 @@ actor SocketServer {
         
         var buffer = [UInt8](repeating: 0, count: 4096)
         let bytesRead = read(fd, &buffer, buffer.count)
-        
         guard bytesRead > 0 else { return }
         
         let data = Data(bytes: buffer, count: bytesRead)
-        
         guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let event = json["event"] as? String else {
-            print("Invalid JSON received")
-            return
-        }
+              let event = json["event"] as? String else { return }
         
         await processEvent(event: event, data: json)
     }
     
     private func processEvent(event: String, data: [String: Any]) async {
-        guard let sessionId = data["session_id"] as? String else {
-            print("Missing session_id in event: \(event)")
-            return
-        }
+        guard let sessionId = data["session_id"] as? String else { return }
         
         await MainActor.run {
             switch event {
@@ -115,19 +102,15 @@ actor SocketServer {
                 if let cwd = data["cwd"] as? String {
                     store.addSession(id: sessionId, cwd: cwd)
                 }
-                
             case "session_end":
                 store.removeSession(id: sessionId)
-                
             case "agent_idle":
                 let lastMessage = data["last_message"] as? String
                 store.updateSessionStatus(id: sessionId, status: .idle, lastMessage: lastMessage)
-                
             case "agent_active":
                 store.updateSessionStatus(id: sessionId, status: .working)
-                
             default:
-                print("Unknown event: \(event)")
+                break
             }
         }
     }

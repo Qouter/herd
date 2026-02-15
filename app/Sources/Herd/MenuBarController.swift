@@ -9,7 +9,6 @@ class MenuBarController: NSObject {
     private let store: AgentStore
     private var cancellables = Set<AnyCancellable>()
     
-    @MainActor
     init(store: AgentStore) {
         self.store = store
         super.init()
@@ -18,7 +17,6 @@ class MenuBarController: NSObject {
         observeStoreChanges()
     }
     
-    @MainActor
     private func setupStatusItem() {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
@@ -29,7 +27,6 @@ class MenuBarController: NSObject {
         }
     }
     
-    @MainActor
     private func setupPopover() {
         popover = NSPopover()
         popover?.contentSize = NSSize(width: 350, height: 400)
@@ -42,19 +39,15 @@ class MenuBarController: NSObject {
         popover?.contentViewController = NSHostingController(rootView: contentView)
     }
     
-    @MainActor
     private func observeStoreChanges() {
         store.$sessions
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in
-                Task { @MainActor in
-                    self?.updateTitle()
-                }
+                self?.updateTitle()
             }
             .store(in: &cancellables)
     }
     
-    @MainActor
     private func updateTitle() {
         let total = store.totalCount
         let idle = store.idleCount
