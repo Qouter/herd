@@ -79,7 +79,7 @@ class TranscriptMonitor {
                 if stale >= 15 {
                     if let lastContent = readLastLines(path: path, count: 5) {
                         // Either matches a known pattern, or transcript is stale with last message from assistant
-                        if isWaitingForInput(content: lastContent) || (stale >= 20 && lastEntryIsAssistant(content: lastContent)) {
+                        if isWaitingForInput(content: lastContent) || (stale >= 10 && lastEntryIsAssistant(content: lastContent)) {
                             DispatchQueue.main.async {
                                 let message = self.extractLastMessage(from: lastContent)
                                 self.store.updateSessionStatus(id: session.id, status: .idle, lastMessage: message)
