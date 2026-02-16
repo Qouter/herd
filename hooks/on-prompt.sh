@@ -1,33 +1,30 @@
-#!/usr/bin/env bash
-# Herder hook: UserPromptSubmit
-# Marca el agente como activo (usuario ha respondido)
+#!/usr/bin/env python3
+"""Herder hook: UserPromptSubmit — marks agent as active."""
+import json, os, socket, sys, time
 
-set -euo pipefail
+SOCKET_PATH = "/tmp/herder.sock"
 
-SOCKET="/tmp/herder.sock"
+try:
+    data = json.load(sys.stdin)
+except Exception:
+    sys.exit(0)
 
-# Leer JSON de stdin
-INPUT=$(cat)
+session_id = data.get("session_id", "")
+if not session_id:
+    sys.exit(0)
 
-# Extraer session_id
-SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty')
-TIMESTAMP=$(date +%s)
+msg = json.dumps({
+    "event": "agent_active",
+    "session_id": session_id,
+    "timestamp": int(time.time()),
+})
 
-# Validar
-if [[ -z "$SESSION_ID" ]]; then
-  exit 0
-fi
-
-# Crear mensaje JSON
-MESSAGE=$(jq -n \
-  --arg event "agent_active" \
-  --arg session_id "$SESSION_ID" \
-  --argjson timestamp "$TIMESTAMP" \
-  '{event: $event, session_id: $session_id, timestamp: $timestamp}')
-
-# Enviar al socket si existe
-if [[ -S "$SOCKET" ]]; then
-  echo "$MESSAGE" | timeout 1 socat - UNIX-CONNECT:"$SOCKET" 2>/dev/null || true
-fi
-
-exit 0
+if os.path.exists(SOCKET_PATH):
+    try:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(1)
+        s.connect(SOCKET_PATH)
+        s.sendall((msg + "\n").encode())
+        s.close()
+    except Exception:
+        pass

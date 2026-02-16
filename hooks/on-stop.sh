@@ -1,46 +1,54 @@
-#!/usr/bin/env bash
-# Herder hook: Stop
-# Marca el agente como idle y extrae el último mensaje del transcript
+#!/usr/bin/env python3
+"""Herder hook: Stop — marks agent as idle, extracts last assistant message."""
+import json, os, socket, sys, time
 
-set -euo pipefail
+SOCKET_PATH = "/tmp/herder.sock"
 
-SOCKET="/tmp/herder.sock"
+try:
+    data = json.load(sys.stdin)
+except Exception:
+    sys.exit(0)
 
-# Leer JSON de stdin
-INPUT=$(cat)
+session_id = data.get("session_id", "")
+if not session_id:
+    sys.exit(0)
 
-# Extraer campos
-SESSION_ID=$(echo "$INPUT" | jq -r '.session_id // empty')
-TRANSCRIPT_PATH=$(echo "$INPUT" | jq -r '.transcript_path // empty')
-TIMESTAMP=$(date +%s)
+# Extract last assistant message from transcript
+last_message = ""
+transcript_path = data.get("transcript_path", "")
+if transcript_path and os.path.isfile(transcript_path):
+    try:
+        with open(transcript_path, "r") as f:
+            lines = f.readlines()
+        for line in reversed(lines[-20:]):
+            try:
+                entry = json.loads(line)
+                msg_obj = entry.get("message", {})
+                if msg_obj.get("role") == "assistant":
+                    content = msg_obj.get("content", [])
+                    if content and isinstance(content, list):
+                        text = content[0].get("text", "")
+                        if text:
+                            last_message = text.replace("\n", " ")[:100]
+                            break
+            except Exception:
+                continue
+    except Exception:
+        pass
 
-# Validar
-if [[ -z "$SESSION_ID" ]]; then
-  exit 0
-fi
+msg = json.dumps({
+    "event": "agent_idle",
+    "session_id": session_id,
+    "last_message": last_message,
+    "timestamp": int(time.time()),
+})
 
-# Extraer último mensaje del assistant del transcript (si existe)
-LAST_MESSAGE=""
-if [[ -n "$TRANSCRIPT_PATH" ]] && [[ -f "$TRANSCRIPT_PATH" ]]; then
-  # Leer últimas 10 líneas, buscar mensajes de assistant, tomar el último
-  LAST_MESSAGE=$(tail -10 "$TRANSCRIPT_PATH" 2>/dev/null | \
-    jq -r 'select(.message.role == "assistant") | .message.content[0].text // empty' 2>/dev/null | \
-    tail -1 | \
-    tr '\n' ' ' | \
-    cut -c1-100 || echo "")
-fi
-
-# Crear mensaje JSON
-MESSAGE=$(jq -n \
-  --arg event "agent_idle" \
-  --arg session_id "$SESSION_ID" \
-  --arg last_message "$LAST_MESSAGE" \
-  --argjson timestamp "$TIMESTAMP" \
-  '{event: $event, session_id: $session_id, last_message: $last_message, timestamp: $timestamp}')
-
-# Enviar al socket si existe
-if [[ -S "$SOCKET" ]]; then
-  echo "$MESSAGE" | timeout 1 socat - UNIX-CONNECT:"$SOCKET" 2>/dev/null || true
-fi
-
-exit 0
+if os.path.exists(SOCKET_PATH):
+    try:
+        s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        s.settimeout(1)
+        s.connect(SOCKET_PATH)
+        s.sendall((msg + "\n").encode())
+        s.close()
+    except Exception:
+        pass
