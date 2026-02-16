@@ -3,6 +3,7 @@ import SwiftUI
 /// Vista de una fila individual de agente
 struct AgentRowView: View {
     let session: AgentSession
+    @State private var isPulsing = false
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
@@ -11,6 +12,11 @@ struct AgentRowView: View {
                 .foregroundColor(statusColor)
                 .font(.system(size: 20))
                 .frame(width: 24)
+                .opacity(session.status == .working ? (isPulsing ? 0.3 : 1.0) : 1.0)
+                .animation(session.status == .working ?
+                    .easeInOut(duration: 1.2).repeatForever(autoreverses: true) : .default,
+                    value: isPulsing)
+                .onAppear { isPulsing = true }
             
             // Content
             VStack(alignment: .leading, spacing: 4) {
