@@ -3,7 +3,7 @@
 **A macOS menu bar app that monitors your Claude Code agents — see who's working and who needs you.**
 
 <p align="center">
-  <code>🤖 3 | ⏳ 1</code>
+  <img src="docs/screenshot.jpg" alt="Herder screenshot" width="400">
 </p>
 
 Running multiple Claude Code sessions across terminals? Herder sits in your menu bar and tells you at a glance:
@@ -50,28 +50,7 @@ When no agents are running, you see a simple `🤖` icon. As agents start, live 
 | 3 agents, all working | `🤖 3` |
 | 3 agents, 1 waiting | `🤖 3 \| ⏳ 1` |
 
-Click to open the popover:
-
-```
-┌──────────────────────────────────────┐
-│  Herder 🐑                   v0.6.4 │
-├──────────────────────────────────────┤
-│                                      │
-│  🟢 ~/Dev/diga_core                  │
-│     🔀 hey-836-recover-sales         │
-│     Working...               [Open]  │
-│     12m                              │
-│                                      │
-│  🟡 ~/Dev/frontend                   │
-│     🔀 feat/new-dashboard            │
-│     "¿Cuál de estas mejoras..."      │
-│     Waiting for you          [Open]  │
-│     45m                              │
-│                                      │
-├──────────────────────────────────────┤
-│  2 active · 1 waiting         Quit   │
-└──────────────────────────────────────┘
-```
+Click the icon to open the popover (see screenshot above).
 
 - **🟢 Green** = agent is working
 - **🟡 Orange** = agent is waiting for your input
