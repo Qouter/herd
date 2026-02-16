@@ -5,7 +5,8 @@ class AgentStore: ObservableObject, @unchecked Sendable {
     @Published var sessions: [AgentSession] = []
     
     private var timeoutTimer: Timer?
-    private let sessionTimeout: TimeInterval = 5 * 60
+    private let idleSessionTimeout: TimeInterval = 30 * 60  // 30 min for idle sessions
+    private let workingSessionTimeout: TimeInterval = 4 * 60 * 60  // 4 hours for working sessions
     
     init() {
         timeoutTimer = Timer.scheduledTimer(withTimeInterval: 60, repeats: true) { [weak self] _ in
@@ -37,6 +38,12 @@ class AgentStore: ObservableObject, @unchecked Sendable {
     
     private func cleanupStaleSessions() {
         let now = Date()
-        sessions.removeAll { now.timeIntervalSince($0.lastActivity) > sessionTimeout }
+        sessions.removeAll {
+            let elapsed = now.timeIntervalSince($0.lastActivity)
+            switch $0.status {
+            case .working: return elapsed > workingSessionTimeout
+            case .idle: return elapsed > idleSessionTimeout
+            }
+        }
     }
 }
