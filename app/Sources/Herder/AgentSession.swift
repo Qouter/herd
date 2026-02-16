@@ -10,6 +10,7 @@ struct AgentSession: Identifiable, Equatable {
     var tty: String?
     var terminalPid: String?
     var terminalApp: String?  // "warp", "iterm2", "terminal", "vscode", "cursor"
+    var transcriptPath: String?
     
     enum Status: Equatable {
         case working

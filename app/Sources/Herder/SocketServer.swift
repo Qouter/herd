@@ -114,6 +114,9 @@ class SocketServer {
             case "session_end":
                 self.store.removeSession(id: sessionId)
             case "agent_idle":
+                if let tp = json["transcript_path"] as? String, !tp.isEmpty {
+                    self.store.setTranscriptPath(id: sessionId, path: tp)
+                }
                 self.store.updateSessionStatus(id: sessionId, status: .idle, lastMessage: json["last_message"] as? String)
             case "agent_active":
                 self.store.updateSessionStatus(id: sessionId, status: .working)

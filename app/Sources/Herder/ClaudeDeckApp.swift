@@ -15,6 +15,7 @@ struct HerderApp: App {
 class AppDelegate: NSObject, NSApplicationDelegate {
     var menuBarController: MenuBarController?
     var socketServer: SocketServer?
+    var transcriptMonitor: TranscriptMonitor?
     let agentStore = AgentStore()
     
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -23,12 +24,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         socketServer = SocketServer(store: agentStore)
         socketServer?.start()
         
+        transcriptMonitor = TranscriptMonitor(store: agentStore)
+        transcriptMonitor?.start()
+        
         menuBarController = MenuBarController(store: agentStore)
         
         print("Herder started")
     }
     
     func applicationWillTerminate(_ notification: Notification) {
+        transcriptMonitor?.stop()
         socketServer?.stop()
     }
 }

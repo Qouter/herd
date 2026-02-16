@@ -36,6 +36,12 @@ class AgentStore: ObservableObject, @unchecked Sendable {
         }
     }
     
+    func setTranscriptPath(id: String, path: String) {
+        if let index = sessions.firstIndex(where: { $0.id == id }) {
+            sessions[index].transcriptPath = path
+        }
+    }
+    
     private func cleanupStaleSessions() {
         let now = Date()
         sessions.removeAll {

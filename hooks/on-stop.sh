@@ -40,6 +40,7 @@ msg = json.dumps({
     "event": "agent_idle",
     "session_id": session_id,
     "last_message": last_message,
+    "transcript_path": transcript_path,
     "timestamp": int(time.time()),
 })
 
