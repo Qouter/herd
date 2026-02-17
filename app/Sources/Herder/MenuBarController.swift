@@ -8,6 +8,7 @@ class MenuBarController: NSObject {
     private var popover: NSPopover?
     private let store: AgentStore
     private var cancellables = Set<AnyCancellable>()
+    private var eventMonitor: Any?
     
     init(store: AgentStore) {
         self.store = store
@@ -74,10 +75,17 @@ class MenuBarController: NSObject {
     private func showPopover() {
         if let button = statusItem?.button, let popover = popover {
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+            eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
+                self?.closePopover()
+            }
         }
     }
     
     private func closePopover() {
         popover?.performClose(nil)
+        if let monitor = eventMonitor {
+            NSEvent.removeMonitor(monitor)
+            eventMonitor = nil
+        }
     }
 }
