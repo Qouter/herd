@@ -42,6 +42,12 @@ class AgentStore: ObservableObject, @unchecked Sendable {
         }
     }
     
+    func setPRInfo(id: String, prInfo: PRInfo?) {
+        if let index = sessions.firstIndex(where: { $0.id == id }) {
+            sessions[index].prInfo = prInfo
+        }
+    }
+    
     private func cleanupStaleSessions() {
         let now = Date()
         sessions.removeAll {

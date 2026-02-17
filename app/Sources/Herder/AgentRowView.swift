@@ -36,6 +36,17 @@ struct AgentRowView: View {
                     .foregroundColor(.accentColor)
                 }
                 
+                // PR checks status
+                if let pr = session.prInfo {
+                    HStack(spacing: 4) {
+                        Text(pr.checksIcon)
+                            .font(.caption2)
+                        Text(pr.checksSummary)
+                            .font(.caption)
+                    }
+                    .foregroundColor(checksColor(pr.checksStatus))
+                }
+                
                 // Status text or last message
                 if let lastMessage = session.lastMessage, !lastMessage.isEmpty {
                     Text(lastMessage)
@@ -56,46 +67,72 @@ struct AgentRowView: View {
             
             Spacer()
             
-            // Open button
-            Button(action: {
-                TerminalLauncher.open(session: session)
-            }) {
-                Text("Open")
-                    .font(.caption)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 4)
+            // Buttons
+            VStack(spacing: 6) {
+                // Open terminal button
+                Button(action: {
+                    TerminalLauncher.open(session: session)
+                }) {
+                    Text("Open")
+                        .font(.caption)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 4)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+                
+                // PR button (only if PR exists)
+                if let pr = session.prInfo {
+                    Button(action: {
+                        if let url = URL(string: pr.url) {
+                            NSWorkspace.shared.open(url)
+                        }
+                    }) {
+                        HStack(spacing: 3) {
+                            Text("PR #\(pr.number)")
+                            Image(systemName: "arrow.up.right")
+                                .font(.system(size: 8))
+                        }
+                        .font(.caption)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                }
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.small)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
     }
     
+    private func checksColor(_ status: PRInfo.ChecksStatus) -> Color {
+        switch status {
+        case .none: return .secondary
+        case .running: return .blue
+        case .failed: return .red
+        case .passed: return .green
+        }
+    }
+    
     private var statusIcon: String {
         switch session.status {
-        case .working:
-            return "circle.fill"
-        case .idle:
-            return "pause.circle.fill"
+        case .working: return "circle.fill"
+        case .idle: return "pause.circle.fill"
         }
     }
     
     private var statusColor: Color {
         switch session.status {
-        case .working:
-            return .green
-        case .idle:
-            return .orange
+        case .working: return .green
+        case .idle: return .orange
         }
     }
     
     private var statusText: String {
         switch session.status {
-        case .working:
-            return "Working..."
-        case .idle:
-            return "Waiting for you"
+        case .working: return "Working..."
+        case .idle: return "Waiting for you"
         }
     }
 }

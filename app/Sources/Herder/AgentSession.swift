@@ -11,6 +11,7 @@ struct AgentSession: Identifiable, Equatable {
     var terminalPid: String?
     var terminalApp: String?  // "warp", "iterm2", "terminal", "vscode", "cursor"
     var transcriptPath: String?
+    var prInfo: PRInfo?
     
     enum Status: Equatable {
         case working
@@ -34,6 +35,25 @@ struct AgentSession: Identifiable, Equatable {
             return "~" + cwd.dropFirst(home.count)
         }
         return cwd
+    }
+    
+    /// GitHub repo info parsed from .git/config
+    var gitRepo: (owner: String, repo: String)? {
+        let configPath = "\(cwd)/.git/config"
+        guard let content = try? String(contentsOfFile: configPath, encoding: .utf8) else { return nil }
+        // Match url = git@github.com:owner/repo.git or https://github.com/owner/repo.git
+        let patterns = [
+            #"url = .*github\.com[:/]([^/]+)/([^/\s]+?)(?:\.git)?\s"#,
+        ]
+        for pattern in patterns {
+            if let regex = try? NSRegularExpression(pattern: pattern),
+               let match = regex.firstMatch(in: content, range: NSRange(content.startIndex..., in: content)),
+               let ownerRange = Range(match.range(at: 1), in: content),
+               let repoRange = Range(match.range(at: 2), in: content) {
+                return (String(content[ownerRange]), String(content[repoRange]))
+            }
+        }
+        return nil
     }
     
     /// Reads the current git branch from .git/HEAD

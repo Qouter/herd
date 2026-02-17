@@ -16,6 +16,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     var menuBarController: MenuBarController?
     var socketServer: SocketServer?
     var transcriptMonitor: TranscriptMonitor?
+    var prMonitor: PRMonitor?
     let agentStore = AgentStore()
     
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -27,12 +28,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         transcriptMonitor = TranscriptMonitor(store: agentStore)
         transcriptMonitor?.start()
         
+        prMonitor = PRMonitor(store: agentStore)
+        prMonitor?.start()
+        
         menuBarController = MenuBarController(store: agentStore)
         
         print("Herder started")
     }
     
     func applicationWillTerminate(_ notification: Notification) {
+        prMonitor?.stop()
         transcriptMonitor?.stop()
         socketServer?.stop()
     }
