@@ -145,18 +145,23 @@ class PRMonitor {
         }.resume()
     }
     
-    /// Try to load GitHub token from gh CLI config or environment
+    /// Try to load GitHub token from gh CLI, config file, or environment
     private func loadGitHubToken() -> String? {
         // 1. Environment variable
         if let token = ProcessInfo.processInfo.environment["GITHUB_TOKEN"], !token.isEmpty {
             return token
         }
         
-        // 2. gh CLI config
+        // 2. gh auth token (reads from keyring)
+        if let token = runCommand("/usr/local/bin/gh", args: ["auth", "token"]) ?? runCommand("/opt/homebrew/bin/gh", args: ["auth", "token"]) {
+            let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty { return trimmed }
+        }
+        
+        // 3. gh CLI config file (fallback for non-keyring setups)
         let home = FileManager.default.homeDirectoryForCurrentUser.path
         let ghConfigPath = "\(home)/.config/gh/hosts.yml"
         if let content = try? String(contentsOfFile: ghConfigPath, encoding: .utf8) {
-            // Simple YAML parse: find oauth_token line
             for line in content.components(separatedBy: "\n") {
                 let trimmed = line.trimmingCharacters(in: .whitespaces)
                 if trimmed.hasPrefix("oauth_token:") {
@@ -166,6 +171,24 @@ class PRMonitor {
             }
         }
         
+        return nil
+    }
+    
+    private func runCommand(_ path: String, args: [String]) -> String? {
+        guard FileManager.default.fileExists(atPath: path) else { return nil }
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: path)
+        process.arguments = args
+        let pipe = Pipe()
+        process.standardOutput = pipe
+        process.standardError = Pipe()
+        do {
+            try process.run()
+            process.waitUntilExit()
+            if process.terminationStatus == 0 {
+                return String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8)
+            }
+        } catch {}
         return nil
     }
 }
